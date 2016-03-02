@@ -210,8 +210,6 @@ function server.start(conf)
 		end
 	end
 
-	local request_handler = assert(conf.request_handler)
-
 	-- u.response is a struct { return_fd , response, version, index }
 	local function retire_response(u)
 		if u.index >= expired_number * 2 then
@@ -233,6 +231,8 @@ function server.start(conf)
 			u.index = max + 1
 		end
 	end
+
+	local request_handler = assert(conf.request_handler)
 
 	local function do_request(fd, message)
 		local u = assert(connection[fd], "invalid fd")
@@ -256,7 +256,7 @@ function server.start(conf)
 		if p == nil then
 			p = { fd }
 			u.response[session] = p
-			local ok, result = pcall(conf.request_handler, u.username, message)
+			local ok, result = pcall(request_handler, u.username, message)
 			-- NOTICE: YIELD here, socket may close.
 			result = result or ""
 			if not ok then
